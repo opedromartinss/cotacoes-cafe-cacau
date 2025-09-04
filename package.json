@@ -1,0 +1,14 @@
+{
+  "name": "cotacoes-cafe-cacau",
+  "version": "1.0.0",
+  "description": "Automated coffee and cacao price scraping",
+  "main": "fetch_prices.js",
+  "scripts": {
+    "fetch": "node fetch_prices.js"
+  },
+  "dependencies": {
+    "node-fetch": "^3.3.1",
+    "cheerio": "^1.0.0-rc.12"
+  },
+  "type": "module"
+}
