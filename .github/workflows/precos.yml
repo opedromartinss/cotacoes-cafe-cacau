@@ -1,0 +1,39 @@
+name: Coletar preços café (Cepea/Esalq via Notícias Agrícolas)
+
+on:
+  schedule:
+    - cron: "5 10,16,22 * * *"  # 3x/dia (UTC)
+  workflow_dispatch:
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # para commitar histórico
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependências
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests beautifulsoup4 python-dateutil
+
+      - name: Rodar coletor
+        env:
+          ARABICA_URL:  ${{ secrets.ARABICA_URL }}
+          CONILLON_URL: ${{ secrets.CONILLON_URL }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}   # <-- necessário pro fallback
+        run: |
+          python scripts/coletar_cafe_cepea.py
+
+      - name: Commit & push (se houve mudança)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/precos.json data/prices.json
+          git diff --quiet && echo "Sem mudanças" || (git commit -m "update: preços café (Cepea)" && git push)
