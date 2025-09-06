@@ -1,1 +1,35 @@
-{}
+{
+  "ultima_atualizacao": "2025-09-06T18:07:37.115229",
+  "data_formatada": "06/09/2025",
+  "hora_formatada": "18:07:37",
+  "pregao_aberto": false,
+  "fonte": "noticiasagricolas",
+  "cafe": {
+    "arabica": {
+      "preco": 2277.03,
+      "unidade": "saca",
+      "peso_kg": 60,
+      "moeda": "BRL"
+    },
+    "robusta": {
+      "preco": 1358.45,
+      "unidade": "saca",
+      "peso_kg": 60,
+      "moeda": "BRL"
+    }
+  },
+  "cacau": {
+    "bahia": {
+      "preco": null,
+      "unidade": "arroba",
+      "peso_kg": 15,
+      "moeda": "BRL"
+    },
+    "para": {
+      "preco": null,
+      "unidade": "arroba",
+      "peso_kg": 15,
+      "moeda": "BRL"
+    }
+  }
+}
