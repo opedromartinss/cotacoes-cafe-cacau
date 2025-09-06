@@ -11,7 +11,8 @@ ARABICA_URL = os.getenv("ARABICA_URL")
 CONILLON_URL = os.getenv("CONILLON_URL")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
-OUT_HISTORY_FILE = "data/precos.json"
+AGROLINK_URL = os.getenv("AGROLINK_URL", "https://selos.agrolink.com.br/selos/carregaselo?servico=cotacoes&uf=9826,9832,9835&p=1794,4133,1787,1775")
+UT_HISTORY_FILE = "data/precos.json"
 OUT_SUMMARY_FILE = "data/prices.json"
 
 UA = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36"
@@ -31,6 +32,53 @@ def fetch(url: str, retries: int = 3, backoff: float = 1.5) -> str:
             last = e
             time.sleep(backoff * (i+1))
     raise last
+
+
+def fetch_agrolink_price(tipo: str):
+    """
+    Fallback: fetch current price for the given tipo ("arabica" or "conillon") from the Agrolink cotacoes snippet.
+    Returns a list with one record if a price is found, otherwise an empty list.
+    """
+    try:
+        html = fetch(AGROLINK_URL)
+    except Exception:
+        return []
+    soup = BeautifulSoup(html, "html.parser")
+    text = soup.get_text("\n", strip=True)
+    lines = [l.strip() for l in text.splitlines() if l.strip()]
+    target_keyword = "arabica" if tipo.lower() == "arabica" else "conilon"
+    valor = None
+    for line in lines:
+        if target_keyword in line.lower():
+            nums = re.findall(r"(?:\d{1,3}(?:\.\d{3})*(?:,\d+)?|\d+(?:\.\d+)?)", line)
+            for s in nums:
+                s2 = s
+                if "," in s and "." in s:
+                    s2 = s.replace(".", "").replace(",", ".")
+                elif "," in s and "." not in s:
+                    s2 = s.replace(",", ".")
+                else:
+                    s2 = s.replace(",", "")
+                try:
+                    valor = float(s2)
+                    break
+                except Exception:
+                    continue
+            if valor is not None:
+                break
+    if valor is None:
+        return []
+    now_iso = datetime.now(timezone.utc).isoformat()
+    today_iso = datetime.now().date().isoformat()
+    return [{
+        "produto": "cafe",
+        "tipo": tipo,
+        "moeda": "BRL",
+        "valor": round(valor, 2),
+        "referente_a": today_iso,
+        "fonte_url": AGROLINK_URL,
+        "coletado_em": now_iso
+    }]
 
 def parse_hist_from_text(text: str, tipo: str, fonte_url: str):
     lines = [l.strip() for l in text.splitlines() if l.strip()]
@@ -144,12 +192,20 @@ HTML:
     return normalized
 
 def parse_with_fallback(url: str, tipo: str):
-    items, html = parse_page_direct(url, tipo)
+        items, html = parse_page_direct(url, tipo)
     if not items:
-        try:
-            return extract_with_openai(html, tipo, url)
-        except Exception:
-            return items
+        # Try extracting via OpenAI if a key is available
+        if OPENAI_API_KEY:
+            try:
+                ai_items = extract_with_openai(html, tipo, url)
+                if ai_items:
+                    return ai_items
+            except Exception:
+                pass
+        # Fallback to Agrolink for the current price
+        agri_items = fetch_agrolink_price(tipo)
+        return agri_items
+    # If we have only a few items and an OpenAI key, try to supplement with AI extraction
     if len(items) <= 2 and OPENAI_API_KEY:
         try:
             ai_items = extract_with_openai(html, tipo, url)
@@ -157,6 +213,7 @@ def parse_with_fallback(url: str, tipo: str):
         except Exception:
             pass
     return items
+   
 
 def load_history(path: str):
     if not os.path.exists(path):
