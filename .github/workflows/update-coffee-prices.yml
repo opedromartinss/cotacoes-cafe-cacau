@@ -1,8 +1,13 @@
 name: Update Coffee Prices
+
 on:
   schedule:
     - cron: "0 1,5,9,13,17,21 * * *"  # 6 times per day
   workflow_dispatch:
+
+permissions:
+  contents: write
+
 jobs:
   update:
     runs-on: ubuntu-latest
@@ -23,4 +28,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Update coffee prices [skip ci]"
-          file_pattern: data/prices.json data/precos.json 
+          file_pattern: data/prices.json data/precos.json
+          commit_user_name: "Pedro Bot"
+          commit_user_email: "saliente-macico-0w@users.noreply.github.com"
