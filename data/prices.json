@@ -1,18 +1,18 @@
 {
-  "ultima_atualizacao": "2025-09-12T18:08:14.170750",
+  "ultima_atualizacao": "2025-09-12T23:07:48.802877",
   "data_formatada": "12/09/2025",
-  "hora_formatada": "18:08:14",
+  "hora_formatada": "23:07:48",
   "pregao_aberto": false,
   "fonte": "noticiasagricolas",
   "cafe": {
     "arabica": {
-      "preco": 2325.54,
+      "preco": 2345.68,
       "unidade": "saca",
       "peso_kg": 60,
       "moeda": "BRL"
     },
     "robusta": {
-      "preco": 1392.94,
+      "preco": 1421.24,
       "unidade": "saca",
       "peso_kg": 60,
       "moeda": "BRL"
